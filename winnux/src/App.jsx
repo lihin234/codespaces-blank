@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Terminal as TerminalIcon, LayoutGrid, Activity, Clock, Zap, X } from 'lucide-react';
+import { Terminal as TerminalIcon, LayoutGrid, Activity, Clock, Zap, X, Lock, ShieldCheck } from 'lucide-react';
 
-// --- KONFIGURASI MESIN CODESPACE ANDA ---
 const CODESPACE_URL = "redesigned-fiesta-g5pvr5g9q5wcw7qv"; 
 
 const TerminalContent = () => {
-  const [history, setHistory] = useState(['--- Winnux Kernel v1.0.0 ---\n']);
+  const [history, setHistory] = useState(['--- Winnux Secure Terminal ---\n']);
   const [input, setInput] = useState('');
+  const [isAuth, setIsAuth] = useState(false);
+  const [user, setUser] = useState('');
+  const [pass, setPass] = useState('');
   const socketRef = useRef();
   const scrollRef = useRef();
 
@@ -15,6 +17,7 @@ const TerminalContent = () => {
     const backendUrl = `https://${CODESPACE_URL}-3001.app.github.dev`;
     socketRef.current = io(backendUrl, { transports: ['websocket'] });
     socketRef.current.on('output', (data) => setHistory(prev => [...prev, data]));
+    socketRef.current.on('authenticated', () => setIsAuth(true));
     return () => socketRef.current.disconnect();
   }, []);
 
@@ -22,12 +25,38 @@ const TerminalContent = () => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [history]);
 
+  const handleLogin = (e) => {
+    if (e.key === 'Enter') {
+      socketRef.current.emit('auth', { user, pass });
+    }
+  };
+
   const handleCmd = (e) => {
     if (e.key === 'Enter') {
       socketRef.current.emit('input', input);
       setInput('');
     }
   };
+
+  if (!isAuth) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-slate-900/50 p-6 rounded-lg border border-white/10">
+        <Lock size={40} className="text-blue-400 mb-4" />
+        <h2 className="text-sm font-bold mb-4 text-white">System Authentication</h2>
+        <input 
+          className="w-full bg-black/40 border border-white/10 rounded p-2 mb-2 text-xs text-white outline-none focus:border-blue-500"
+          placeholder="Username" value={user} onChange={(e) => setUser(e.target.value)}
+        />
+        <input 
+          type="password"
+          className="w-full bg-black/40 border border-white/10 rounded p-2 mb-4 text-xs text-white outline-none focus:border-blue-500"
+          placeholder="Password" value={pass} onChange={(e) => setPass(e.target.value)}
+          onKeyDown={handleLogin}
+        />
+        <p className="text-[9px] text-gray-500 italic">Press Enter to Login</p>
+      </div>
+    );
+  }
 
   return (
     <div className="text-green-400 font-mono text-[10px] h-full flex flex-col overflow-hidden bg-black/20 p-2">
@@ -62,22 +91,22 @@ export default function App() {
   return (
     <div className="h-screen w-screen overflow-hidden font-sans text-white bg-slate-950">
       <div className="p-6 h-full relative">
-        <div className="absolute top-6 right-6 w-60 bg-black/80 backdrop-blur-3xl border border-white/10 rounded-3xl p-5 shadow-2xl border-t-4 border-t-blue-500 z-10">
+        <div className="absolute top-6 right-6 w-60 bg-black/80 backdrop-blur-3xl border border-white/10 rounded-3xl p-5 shadow-[0_0_30px_rgba(0,0,0,0.5)] border-t-4 border-t-blue-500 z-10">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <Activity size={20} className="text-blue-400 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-100">Live Monitor</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-100">Live Monitor</span>
             </div>
-            <span className="text-[9px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full font-bold text-white">VERCEL</span>
+            <span className="text-[9px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full font-bold text-white">SECURED</span>
           </div>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-center">
-                <div className="text-[8px] text-gray-500 uppercase">Next Check</div>
+                <div className="text-[8px] text-gray-500 uppercase mb-1 flex items-center gap-1"><Clock size={10}/> Next Check</div>
                 <div className="text-lg font-mono font-black text-blue-400">{formatTime(health.next_ping)}</div>
               </div>
               <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-center">
-                <div className="text-[8px] text-gray-500 uppercase">Uptime</div>
+                <div className="text-[8px] text-gray-500 uppercase mb-1 flex items-center gap-1"><Zap size={10}/> Uptime</div>
                 <div className="text-lg font-mono font-black text-green-400">{health.server_uptime}s</div>
               </div>
             </div>
@@ -99,10 +128,10 @@ export default function App() {
         </div>
       </div>
       {activeApp === 'terminal' && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-[700px] h-[450px] bg-black/90 backdrop-blur-3xl border border-white/20 rounded-xl shadow-2xl flex flex-col z-50 overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-[600px] h-[450px] bg-black/90 backdrop-blur-3xl border border-white/20 rounded-xl shadow-2xl flex flex-col z-50 overflow-hidden">
           <div className="h-10 bg-white/5 flex items-center justify-between px-4 border-b border-white/10">
-            <span className="text-xs font-bold">Bash Terminal (Remote)</span>
-            <X size={18} onClick={() => setActiveApp(null)} className="cursor-pointer hover:text-red-500" />
+            <div className="flex items-center gap-2"><ShieldCheck size={14} className="text-blue-400" /><span className="text-xs font-bold text-white">Secure Terminal</span></div>
+            <X size={18} onClick={() => setActiveApp(null)} className="cursor-pointer hover:text-red-500 text-white" />
           </div>
           <div className="flex-1 p-2 overflow-hidden"><TerminalContent /></div>
         </div>
