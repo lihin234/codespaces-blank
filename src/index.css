@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --wallpaper: url('https://images.wallpapersden.com/image/download/windows-11-dark-mode-blue_bG5lZ26UmZqaraWkpJRmbmdlrWZlbWU.jpg');
