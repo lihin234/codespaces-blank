@@ -1,10 +1,8 @@
 [variables]
-# Mematikan proteksi virtual environment Python agar instalasi pip tidak diblokir
 PIP_BREAK_SYSTEM_PACKAGES = "1"
 
 [phases.setup]
-# Memaksa mesin mengunduh Node 20 (berisi npm), Python 3, dan paket Pip secara bersamaan
-nixPkgs =["nodejs_20", "python3", "python3Packages.pip", "gcc"]
+nixPkgs = ["nodejs_20", "python3", "python3Packages.pip", "gcc"]
 
 [phases.install]
 cmds =[
@@ -13,7 +11,9 @@ cmds =[
 ]
 
 [phases.build]
-cmds = [
+cmds =[
   "npm run build"
-][start]
+]
+
+[start]
 cmd = "node bridge.js & python3 guardian_bot.py"
