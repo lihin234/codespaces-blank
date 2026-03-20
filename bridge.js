@@ -13,48 +13,38 @@ const ADMIN_USER = process.env.ADMIN_USER;
 const ADMIN_PASS = process.env.ADMIN_PASS;
 const PORT = process.env.PORT || 8080;
 
+// RESPONS UNTUK RAILWAY HEALTHCHECK (SANGAT PENTING)
 app.get('/', (req, res) => {
-    res.send('<h1>✅ Winnux Cloud Engine: ONLINE</h1>');
+    res.status(200).send('OK');
 });
 
 let stats = {
-    status: "Healthy (Cloud)", ping_count: 0, last_ping: "Railway 24/7",
-    targets_status: { App: "ONLINE", Bridge: "ONLINE", API: "MERGED", SSH: "CLOUD" },
+    status: "Healthy", ping_count: 0, 
+    targets_status: { Cloud: "ONLINE", Bot: "ACTIVE" },
     next_ping: 30, server_uptime: 0
 };
 
 setInterval(() => {
     stats.server_uptime += 1;
-    if (stats.next_ping > 0) stats.next_ping -= 1;
-    else stats.next_ping = 30;
     io.emit('live_update', stats);
 }, 1000);
 
 io.on('connection', (socket) => {
   socket.setMaxListeners(0);
   let shell = null;
-  
   socket.on('auth', (data) => {
     if (data.user === ADMIN_USER && data.pass === ADMIN_PASS) {
-      socket.emit('output', '\r\n✅ LOGIN SUKSES!\r\n');
-      const rootDir = process.cwd();
-      shell = spawn('bash', [], {
-        cwd: rootDir,
-        env: { ...process.env, TERM: 'xterm-256color' },
-        shell: true
-      });
+      socket.emit('authenticated', true);
+      shell = spawn('bash', [], { cwd: process.cwd(), env: { ...process.env, TERM: 'xterm-256color' }, shell: true });
       shell.stdout.on('data', (d) => socket.emit('output', d.toString()));
       shell.stderr.on('data', (d) => socket.emit('output', d.toString()));
       socket.on('input', (i) => { if(shell) shell.stdin.write(i + '\n'); });
-      socket.emit('authenticated', true);
-    } else {
-      socket.emit('output', '\r\n❌ LOGIN GAGAL!\r\n');
     }
   });
   socket.on('disconnect', () => { if(shell) shell.kill(); });
 });
 
-// PENTING: Tambahkan '0.0.0.0' agar Railway bisa mendeteksi server
+// Bind ke 0.0.0.0 agar terdeteksi jaringan luar
 httpServer.listen(PORT, '0.0.0.0', () => {
-    console.log(`🔐 Bridge listening on 0.0.0.0:${PORT}`);
+    console.log(`✅ Server is running on port ${PORT}`);
 });
