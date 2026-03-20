@@ -6,6 +6,5 @@ COPY . /app
 RUN npm install
 RUN pip3 install --break-system-packages -r requirements.txt
 EXPOSE 8080
-
-# Gunakan shell form agar kedua proses terjaga
-CMD node bridge.js & python3 guardian_bot.py && wait
+# Railway hanya menjalankan Master Node, Python akan dipanggil oleh Node
+CMD ["node", "bridge.js"]

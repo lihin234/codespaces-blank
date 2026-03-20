@@ -9,31 +9,37 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: "*" } });
 
-const ADMIN_USER = process.env.ADMIN_USER;
-const ADMIN_PASS = process.env.ADMIN_PASS;
 const PORT = process.env.PORT || 8080;
 
-// RESPONS UNTUK RAILWAY HEALTHCHECK (SANGAT PENTING)
-app.get('/', (req, res) => {
-    res.status(200).send('OK');
-});
+// 1. RESPONS INSTAN UNTUK RAILWAY HEALTHCHECK
+app.get('/', (req, res) => { res.status(200).send('HEALTHY'); });
 
+// 2. LIVE MONITOR DATA
 let stats = {
     status: "Healthy", ping_count: 0, 
-    targets_status: { Cloud: "ONLINE", Bot: "ACTIVE" },
+    targets_status: { Cloud: "ONLINE", Bot: "STARTING" },
     next_ping: 30, server_uptime: 0
 };
+setInterval(() => { stats.server_uptime += 1; io.emit('live_update', stats); }, 1000);
 
-setInterval(() => {
-    stats.server_uptime += 1;
-    io.emit('live_update', stats);
-}, 1000);
+// 3. MENYALAKAN PYTHON SEBAGAI CHILD PROCESS (SLAVE)
+const startPythonBot = () => {
+    const bot = spawn('python3', ['guardian_bot.py']);
+    bot.stdout.on('data', (data) => console.log(`[Python]: ${data}`));
+    bot.stderr.on('data', (data) => console.error(`[Python Error]: ${data}`));
+    bot.on('close', (code) => {
+        console.log(`Python bot exited with code ${code}. Restarting...`);
+        setTimeout(startPythonBot, 5000);
+    });
+};
+startPythonBot();
 
+// 4. TERMINAL SOCKET ENGINE
 io.on('connection', (socket) => {
   socket.setMaxListeners(0);
   let shell = null;
   socket.on('auth', (data) => {
-    if (data.user === ADMIN_USER && data.pass === ADMIN_PASS) {
+    if (data.user === process.env.ADMIN_USER && data.pass === process.env.ADMIN_PASS) {
       socket.emit('authenticated', true);
       shell = spawn('bash', [], { cwd: process.cwd(), env: { ...process.env, TERM: 'xterm-256color' }, shell: true });
       shell.stdout.on('data', (d) => socket.emit('output', d.toString()));
@@ -44,7 +50,6 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => { if(shell) shell.kill(); });
 });
 
-// Bind ke 0.0.0.0 agar terdeteksi jaringan luar
 httpServer.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Server is running on port ${PORT}`);
+    console.log(`🚀 Master Bridge active on port ${PORT}`);
 });
