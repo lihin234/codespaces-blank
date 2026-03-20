@@ -1,11 +1,16 @@
 [phases.setup]
-nixPkgs = ["nodejs", "python311", "gcc"]
+nixPkgs =["nodejs", "python3", "gcc", "wget"]
 
 [phases.install]
-cmds = ["npm install", "python3 -m pip install -r requirements.txt"]
+cmds =[
+    "npm install",
+    "wget https://bootstrap.pypa.io/get-pip.py",
+    "python3 get-pip.py",
+    "python3 -m pip install -r requirements.txt"
+]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds =["npm run build"]
 
 [start]
 cmd = "node bridge.js & python3 guardian_bot.py"
