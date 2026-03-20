@@ -9,9 +9,10 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: "*" } });
 
+// RAILWAY MEMBERIKAN PORT LEWAT ENV
 const PORT = process.env.PORT || 8080;
 
-app.get('/', (req, res) => { res.status(200).send('HEALTHY'); });
+app.get('/', (req, res) => { res.send('HEALTHY'); });
 
 io.on('connection', (socket) => {
   socket.on('auth', (data) => {
@@ -25,7 +26,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// WAJIB BIND KE 0.0.0.0
+// WAJIB BIND KE 0.0.0.0 AGAR TERDETEKSI RAILWAY
 httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log('Master Bridge is listening on 0.0.0.0:' + PORT);
+  console.log('Server online on port ' + PORT);
 });
