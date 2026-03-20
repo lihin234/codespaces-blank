@@ -21,14 +21,8 @@ const TerminalContent = () => {
     return () => socketRef.current.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [history]);
-
-  const handleLogin = (e) => {
-    if (e.key === 'Enter') {
-      socketRef.current.emit('auth', { user, pass });
-    }
+  const handleLogin = () => {
+    socketRef.current.emit('auth', { user, pass });
   };
 
   const handleCmd = (e) => {
@@ -51,9 +45,14 @@ const TerminalContent = () => {
           type="password"
           className="w-full bg-black/40 border border-white/10 rounded p-2 mb-4 text-xs text-white outline-none focus:border-blue-500"
           placeholder="Password" value={pass} onChange={(e) => setPass(e.target.value)}
-          onKeyDown={handleLogin}
         />
-        <p className="text-[9px] text-gray-500 italic">Press Enter to Login</p>
+        {/* Tombol Login Fisik */}
+        <button 
+          onClick={handleLogin}
+          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded text-xs transition-all active:scale-95"
+        >
+          LOGIN SYSTEM
+        </button>
       </div>
     );
   }
@@ -91,22 +90,22 @@ export default function App() {
   return (
     <div className="h-screen w-screen overflow-hidden font-sans text-white bg-slate-950">
       <div className="p-6 h-full relative">
-        <div className="absolute top-6 right-6 w-60 bg-black/80 backdrop-blur-3xl border border-white/10 rounded-3xl p-5 shadow-[0_0_30px_rgba(0,0,0,0.5)] border-t-4 border-t-blue-500 z-10">
+        <div className="absolute top-6 right-6 w-60 bg-black/80 backdrop-blur-3xl border border-white/10 rounded-3xl p-5 shadow-2xl border-t-4 border-t-blue-500 z-10">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <Activity size={20} className="text-blue-400 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-100">Live Monitor</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-blue-100">Live Monitor</span>
             </div>
             <span className="text-[9px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full font-bold text-white">SECURED</span>
           </div>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-center">
-                <div className="text-[8px] text-gray-500 uppercase mb-1 flex items-center gap-1"><Clock size={10}/> Next Check</div>
+                <div className="text-[8px] text-gray-500 uppercase mb-1">Next Check</div>
                 <div className="text-lg font-mono font-black text-blue-400">{formatTime(health.next_ping)}</div>
               </div>
               <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-center">
-                <div className="text-[8px] text-gray-500 uppercase mb-1 flex items-center gap-1"><Zap size={10}/> Uptime</div>
+                <div className="text-[8px] text-gray-500 uppercase mb-1">Uptime</div>
                 <div className="text-lg font-mono font-black text-green-400">{health.server_uptime}s</div>
               </div>
             </div>
