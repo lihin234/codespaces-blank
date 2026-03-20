@@ -395,3 +395,44 @@ AssertionError: write() before start_response
 127.0.0.1 - - [20/Mar/2026 04:19:58] "GET / HTTP/1.1" 404 -
 127.0.0.1 - - [20/Mar/2026 04:20:28] "GET / HTTP/1.1" 404 -
 127.0.0.1 - - [20/Mar/2026 04:20:58] "GET / HTTP/1.1" 404 -
+Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+ * Serving Flask app 'guardian_bot'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:3002
+ * Running on http://10.0.0.204:3002
+Press CTRL+C to quit
+127.0.0.1 - - [20/Mar/2026 04:48:06] "GET / HTTP/1.1" 404 -
+127.0.0.1 - - [20/Mar/2026 04:48:35] "GET / HTTP/1.1" 404 -
+127.0.0.1 - - [20/Mar/2026 04:48:35] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 500 -
+Error on request:
+Traceback (most recent call last):
+  File "/home/codespace/.python/current/lib/python3.12/site-packages/werkzeug/serving.py", line 370, in run_wsgi
+    execute(self.server.app)
+  File "/home/codespace/.python/current/lib/python3.12/site-packages/werkzeug/serving.py", line 336, in execute
+    write(b"")
+  File "/home/codespace/.python/current/lib/python3.12/site-packages/werkzeug/serving.py", line 261, in write
+    assert status_set is not None, "write() before start_response"
+AssertionError: write() before start_response
+127.0.0.1 - - [20/Mar/2026 04:48:36] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 500 -
+Error on request:
+Traceback (most recent call last):
+  File "/home/codespace/.python/current/lib/python3.12/site-packages/werkzeug/serving.py", line 370, in run_wsgi
+    execute(self.server.app)
+  File "/home/codespace/.python/current/lib/python3.12/site-packages/werkzeug/serving.py", line 336, in execute
+    write(b"")
+  File "/home/codespace/.python/current/lib/python3.12/site-packages/werkzeug/serving.py", line 261, in write
+    assert status_set is not None, "write() before start_response"
+AssertionError: write() before start_response
+127.0.0.1 - - [20/Mar/2026 04:48:50] "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 500 -
+Error on request:
+Traceback (most recent call last):
+  File "/home/codespace/.python/current/lib/python3.12/site-packages/werkzeug/serving.py", line 370, in run_wsgi
+    execute(self.server.app)
+  File "/home/codespace/.python/current/lib/python3.12/site-packages/werkzeug/serving.py", line 336, in execute
+    write(b"")
+  File "/home/codespace/.python/current/lib/python3.12/site-packages/werkzeug/serving.py", line 261, in write
+    assert status_set is not None, "write() before start_response"
+AssertionError: write() before start_response
+127.0.0.1 - - [20/Mar/2026 04:49:05] "GET / HTTP/1.1" 404 -
