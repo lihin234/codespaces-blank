@@ -35,23 +35,14 @@ io.on('connection', (socket) => {
   let shell = null;
   
   socket.on('auth', (data) => {
-    if (!ADMIN_USER || !ADMIN_PASS) {
-      socket.emit('output', '\r\n❌ ERROR: ENV Kredensial tidak ditemukan!\r\n');
-      return;
-    }
-
     if (data.user === ADMIN_USER && data.pass === ADMIN_PASS) {
-      socket.emit('output', '\r\n✅ LOGIN SUKSES! Sinkronisasi Folder...\r\n');
-      
-      // AUTO-DETECT: Mencari folder aktif saat ini agar tidak error getcwd()
+      socket.emit('output', '\r\n✅ LOGIN SUKSES!\r\n');
       const rootDir = process.cwd();
-
       shell = spawn('bash', [], {
         cwd: rootDir,
         env: { ...process.env, TERM: 'xterm-256color' },
         shell: true
       });
-
       shell.stdout.on('data', (d) => socket.emit('output', d.toString()));
       shell.stderr.on('data', (d) => socket.emit('output', d.toString()));
       socket.on('input', (i) => { if(shell) shell.stdin.write(i + '\n'); });
@@ -60,8 +51,10 @@ io.on('connection', (socket) => {
       socket.emit('output', '\r\n❌ LOGIN GAGAL!\r\n');
     }
   });
-
   socket.on('disconnect', () => { if(shell) shell.kill(); });
 });
 
-httpServer.listen(PORT, () => console.log('🔐 Secured Bridge Finalized'));
+// PENTING: Tambahkan '0.0.0.0' agar Railway bisa mendeteksi server
+httpServer.listen(PORT, '0.0.0.0', () => {
+    console.log(`🔐 Bridge listening on 0.0.0.0:${PORT}`);
+});
