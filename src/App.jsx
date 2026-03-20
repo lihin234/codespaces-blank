@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 import { Terminal as TerminalIcon, LayoutGrid, Activity, Clock, Zap, X, Lock, ShieldCheck } from 'lucide-react';
 
 // === TEMBAK LANGSUNG KE SERVER RAILWAY 24/7 ===
-const RAILWAY_URL = "https://codespaces-blank-production-3dba.up.railway.app"; 
+const RAILWAY_URL = "https://codespaces-blank-production-b831.up.railway.app"; 
 
 const TerminalContent = () => {
   const [history, setHistory] = useState(['--- Winnux Cloud Terminal ---\n']);
