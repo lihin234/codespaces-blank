@@ -6,6 +6,9 @@
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3"
   },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
