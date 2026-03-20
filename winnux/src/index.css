@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+:root {
+  --wallpaper: url('https://images.wallpapersden.com/image/download/windows-11-dark-mode-blue_bG5lZ26UmZqaraWkpJRmbmdlrWZlbWU.jpg');
+}
+
+body {
+  margin: 0; padding: 0; overflow: hidden;
+  height: 100vh; width: 100vw;
+  background-image: var(--wallpaper);
+  background-size: cover; background-position: center;
+  background-color: #00122e;
+}
