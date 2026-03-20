@@ -9,16 +9,16 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: "*" } });
 
-const ADMIN_USER = process.env.ADMIN_USER || "admin";
-const ADMIN_PASS = process.env.ADMIN_PASS || "Lee06";
+const ADMIN_USER = process.env.ADMIN_USER;
+const ADMIN_PASS = process.env.ADMIN_PASS;
 const PORT = process.env.PORT || 8080;
 
 app.get('/', (req, res) => {
-    res.send('<h1>✅ Winnux Cloud Backend is ONLINE</h1>');
+    res.send('<h1>✅ Winnux Cloud Engine: ONLINE</h1>');
 });
 
 let stats = {
-    status: "Healthy (Cloud)", ping_count: 999, last_ping: "Railway 24/7",
+    status: "Healthy (Cloud)", ping_count: 0, last_ping: "Railway 24/7",
     targets_status: { App: "ONLINE", Bridge: "ONLINE", API: "MERGED", SSH: "CLOUD" },
     next_ping: 30, server_uptime: 0
 };
@@ -33,13 +33,21 @@ setInterval(() => {
 io.on('connection', (socket) => {
   socket.setMaxListeners(0);
   let shell = null;
+  
   socket.on('auth', (data) => {
+    if (!ADMIN_USER || !ADMIN_PASS) {
+      socket.emit('output', '\r\n❌ ERROR: ENV Kredensial tidak ditemukan!\r\n');
+      return;
+    }
+
     if (data.user === ADMIN_USER && data.pass === ADMIN_PASS) {
-      socket.emit('output', '\r\n✅ LOGIN SUKSES! Memulai Cloud-Bash...\r\n');
+      socket.emit('output', '\r\n✅ LOGIN SUKSES! Sinkronisasi Folder...\r\n');
       
-      // FIX: Tambahkan 'cwd: "/app"' agar tidak error getcwd()
+      // AUTO-DETECT: Mencari folder aktif saat ini agar tidak error getcwd()
+      const rootDir = process.cwd();
+
       shell = spawn('bash', [], {
-        cwd: '/app',
+        cwd: rootDir,
         env: { ...process.env, TERM: 'xterm-256color' },
         shell: true
       });
@@ -52,7 +60,8 @@ io.on('connection', (socket) => {
       socket.emit('output', '\r\n❌ LOGIN GAGAL!\r\n');
     }
   });
+
   socket.on('disconnect', () => { if(shell) shell.kill(); });
 });
 
-httpServer.listen(PORT, () => console.log('🔐 Secured Bridge Fixed'));
+httpServer.listen(PORT, () => console.log('🔐 Secured Bridge Finalized'));
