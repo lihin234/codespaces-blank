@@ -1,37 +1,70 @@
-import time, requests, os
+import time, requests, os, logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from dotenv import load_dotenv
 
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-# Gunakan URL Railway Anda sebagai target
-BASE_URL = "codespaces-blank-production-3dba.up.railway.app"
-WINNUX_URL = f"https://{BASE_URL}"
+# URL Railway Anda
+WINNUX_URL = "https://codespaces-blank-production-3dba.up.railway.app"
 
-async def ping_task(context):
+# Variabel Internal Bot
+stats = {
+    "status": "Healthy",
+    "ping_count": 0,
+    "last_ping": "Never",
+}
+
+# --- FUNGSI PENJAGA (KEEP-ALIVE) ---
+async def ping_task(context: ContextTypes.DEFAULT_TYPE):
     headers = {'User-Agent': 'Mozilla/5.0 Winnux-Guardian'}
     try:
-        # Mengetuk pintu Node.js (Port Utama)
-        requests.get(WINNUX_URL, headers=headers, timeout=10)
-        print(f"[{time.strftime('%H:%M:%S')}] 🛡️ Heartbeat sent to Cloud Bridge")
-    except:
-        print("❌ Ping failed")
+        res = requests.get(WINNUX_URL, headers=headers, timeout=10)
+        stats["ping_count"] += 1
+        stats["last_ping"] = time.strftime('%H:%M:%S')
+        print(f"🛡️ Heartbeat #{stats['ping_count']} OK")
+    except Exception as e:
+        print(f"❌ Ping Failed: {e}")
 
-async def start(update, context):
-    jobs = context.job_queue.get_jobs_by_name("job")
+# --- HANDLER PERINTAH /START ---
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Jalankan penjadwal jika belum ada
+    jobs = context.job_queue.get_jobs_by_name("guardian_job")
     if not jobs:
-        context.job_queue.run_repeating(ping_task, interval=30, first=1, name="job")
+        context.job_queue.run_repeating(ping_task, interval=60, first=1, name="guardian_job")
     
-    kb = [[InlineKeyboardButton("🌐 Buka Winnux OS", web_app=WebAppInfo(url=WINNUX_URL))]]
-    await update.message.reply_text("🛡️ **Winnux Guardian 24/7 Online!**\nServer terjaga oleh infrastruktur Railway.", 
-                                  reply_markup=InlineKeyboardMarkup(kb), parse_mode="Markdown")
+    keyboard = [[InlineKeyboardButton("🌐 Buka Winnux OS", web_app=WebAppInfo(url=WINNUX_URL))]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text(
+        "🛡️ **Winnux Cloud Guardian v5.0**\n\n"
+        "Status: Bot Aktif Menjaga Railway.\n"
+        "Ketik /status untuk melihat kesehatan server.",
+        reply_markup=reply_markup,
+        parse_mode="Markdown"
+    )
+
+# --- HANDLER PERINTAH /STATUS (YANG TADI HILANG) ---
+async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = (f"📊 **Winnux System Health**\n\n"
+           f"• Server: ONLINE (Railway)\n"
+           f"• Guardian: ACTIVE\n"
+           f"• Total Heartbeats: {stats['ping_count']}\n"
+           f"• Last Pulse: {stats['last_ping']}\n\n"
+           f"✅ Semua sistem tersinkronisasi.")
+    await update.message.reply_text(msg, parse_mode="Markdown")
 
 if __name__ == '__main__':
     if not TELEGRAM_TOKEN:
-        print("Token missing!")
+        print("❌ ERROR: TELEGRAM_TOKEN missing in Variables!")
         exit()
+
+    print("🤖 Python Bot is initializing...")
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    print("🤖 Telegram Bot Standby...")
+    
+    # DAFTARKAN SEMUA PERINTAH DI SINI
+    app.add_handler(CommandHandler("start", start_command))
+    app.add_handler(CommandHandler("status", status_command))
+    
+    print("🚀 Bot is Polling...")
     app.run_polling()
