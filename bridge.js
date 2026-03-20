@@ -11,9 +11,12 @@ const io = new Server(httpServer, { cors: { origin: "*" } });
 
 const ADMIN_USER = process.env.ADMIN_USER || "admin";
 const ADMIN_PASS = process.env.ADMIN_PASS || "Lee06";
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
 
-// --- LIVE MONITOR ENGINE ---
+app.get('/', (req, res) => {
+    res.send('<h1>✅ Winnux Cloud Backend is ONLINE</h1>');
+});
+
 let stats = {
     status: "Healthy (Cloud)", ping_count: 999, last_ping: "Railway 24/7",
     targets_status: { App: "ONLINE", Bridge: "ONLINE", API: "MERGED", SSH: "CLOUD" },
@@ -27,14 +30,20 @@ setInterval(() => {
     io.emit('live_update', stats);
 }, 1000);
 
-// --- SECURE TERMINAL ENGINE ---
 io.on('connection', (socket) => {
   socket.setMaxListeners(0);
   let shell = null;
   socket.on('auth', (data) => {
     if (data.user === ADMIN_USER && data.pass === ADMIN_PASS) {
-      socket.emit('output', '\r\n✅ LOGIN BERHASIL! Selamat datang di Cloud Server.\r\n');
-      shell = spawn('bash',[], { env: { ...process.env, TERM: 'xterm-256color' }, shell: true });
+      socket.emit('output', '\r\n✅ LOGIN SUKSES! Memulai Cloud-Bash...\r\n');
+      
+      // FIX: Tambahkan 'cwd: "/app"' agar tidak error getcwd()
+      shell = spawn('bash', [], {
+        cwd: '/app',
+        env: { ...process.env, TERM: 'xterm-256color' },
+        shell: true
+      });
+
       shell.stdout.on('data', (d) => socket.emit('output', d.toString()));
       shell.stderr.on('data', (d) => socket.emit('output', d.toString()));
       socket.on('input', (i) => { if(shell) shell.stdin.write(i + '\n'); });
@@ -46,4 +55,4 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => { if(shell) shell.kill(); });
 });
 
-httpServer.listen(PORT, () => console.log('🚀 Unified Cloud Bridge Active on Port', PORT));
+httpServer.listen(PORT, () => console.log('🔐 Secured Bridge Fixed'));
