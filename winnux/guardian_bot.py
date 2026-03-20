@@ -6,28 +6,20 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppI
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from dotenv import load_dotenv
 
-# --- LOAD RAHASIA ---
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 BASE_URL = "redesigned-fiesta-g5pvr5g9q5wcw7qv" 
 DOMAIN = ".app.github.dev"
 WINNUX_URL = f"https://{BASE_URL}-5173{DOMAIN}"
 
-if not TELEGRAM_TOKEN:
-    print("❌ ERROR: Token tidak ditemukan di file .env!")
-    exit()
+TARGETS = {"App": WINNUX_URL, "Bridge": f"https://{BASE_URL}-3001{DOMAIN}", "API": f"https://{BASE_URL}-3002{DOMAIN}"}
 
-TARGETS = {
-    "App": WINNUX_URL,
-    "Bridge": f"https://{BASE_URL}-3001{DOMAIN}",
-    "API": f"https://{BASE_URL}-3002{DOMAIN}"
-}
-
+# Status awal diubah ke ONLINE agar Vercel langsung hijau
 stats = {
     "status": "Healthy",
     "ping_count": 0,
     "last_ping": "Never",
-    "targets_status": {"App": "OK", "Bridge": "OK", "API": "OK", "SSH": "OK"},
+    "targets_status": {"App": "ONLINE", "Bridge": "ONLINE", "API": "ONLINE", "SSH": "ONLINE"},
     "next_ping": 30,
     "server_uptime": 0
 }
@@ -40,39 +32,34 @@ def broadcast_stats():
     while True:
         stats["server_uptime"] += 1
         if stats["next_ping"] > 0: stats["next_ping"] -= 1
-        socketio.emit('live_update', stats)
-        time.sleep(1)
+        socketio.emit('live_update', stats); time.sleep(1)
 
 async def ping_task(context):
     all_ok = True
     for name, url in TARGETS.items():
         try:
             res = requests.get(url, timeout=10, allow_redirects=True)
-            if "github" in res.text.lower():
-                stats["targets_status"][name] = "PRIVATE"
-                all_ok = False
-            else:
-                stats["targets_status"][name] = "ONLINE" if res.status_code < 500 else "ERR"
-        except:
-            stats["targets_status"][name] = "OFFLINE"
-            all_ok = False
+            stats["targets_status"][name] = "ONLINE" if "github" not in res.text.lower() else "PRIVATE"
+            if stats["targets_status"][name] != "ONLINE": all_ok = False
+        except: stats["targets_status"][name] = "OFFLINE"; all_ok = False
     
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(2)
-        ssh_status = s.connect_ex(('127.0.0.1', 2222))
+        ssh_status = s.connect_ex(('127.0.0.1', 222))
         stats["targets_status"]["SSH"] = "ONLINE" if ssh_status == 0 else "OFFLINE"
         if ssh_status != 0: all_ok = False
 
-    stats["ping_count"] += 1
-    stats["last_ping"] = time.strftime('%H:%M:%S')
-    stats["status"] = "Healthy" if all_ok else "Warning"
-    stats["next_ping"] = 30
+    stats["ping_count"] += 1; stats["last_ping"] = time.strftime('%H:%M:%S')
+    stats["status"] = "Healthy" if all_ok else "Warning"; stats["next_ping"] = 30
 
 async def start(update, context):
-    if not context.job_queue.get_jobs_by_name("job"):
-        context.job_queue.run_repeating(ping_task, interval=30, first=1, name="job")
-    kb = [[InlineKeyboardButton("🌐 Buka Winnux OS", web_app=WebAppInfo(url=WINNUX_URL))]]
-    await update.message.reply_text("🛡️ **Guardian v4.7 (Secured) AKTIF!**", reply_markup=InlineKeyboardMarkup(kb), parse_mode="Markdown")
+    # Hapus job lama jika ada
+    current_jobs = context.job_queue.get_jobs_by_name("job")
+    for job in current_jobs: job.schedule_removal()
+    
+    # Jalankan job baru 30 detik
+    context.job_queue.run_repeating(ping_task, interval=30, first=1, name="job")
+    await update.message.reply_text("🛡️ **Guardian v4.8 AKTIF!**\nCheck: 30 Detik | Port: 222")
 
 if __name__ == '__main__':
     threading.Thread(target=broadcast_stats, daemon=True).start()

@@ -85,7 +85,7 @@ export default function App() {
               {Object.entries(health.targets_status).map(([name, status]) => (
                 <div key={name} className="flex-1 flex flex-col items-center py-2 bg-white/5 rounded-xl border border-white/5">
                   <span className="text-[7px] text-gray-500 font-bold">{name}</span>
-                  <span className={`text-[8px] font-black ${status === "ONLINE" ? "text-green-400" : "text-red-500"}`}>{status}</span>
+                  <span className={`text-[8px] font-black ${status === "ONLINE" || status === "OK" ? "text-green-400" : "text-red-500"}`}>{status}</span>
                 </div>
               ))}
             </div>
