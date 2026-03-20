@@ -1,16 +1,10 @@
-[phases.setup]
-nixPkgs =["nodejs", "python3", "gcc", "wget"]
+# Menyuruh Railway mengaktifkan 2 bahasa sekaligus (Resmi)
+providers =["node", "python"]
 
-[phases.install]
-cmds =[
-    "npm install",
-    "wget https://bootstrap.pypa.io/get-pip.py",
-    "python3 get-pip.py",
-    "python3 -m pip install -r requirements.txt"
-]
-
+# Tahap Build untuk React/Vite
 [phases.build]
-cmds =["npm run build"]
+cmds = ["npm run build"]
 
+# Tahap menjalankan kedua mesin bersamaan
 [start]
-cmd = "node bridge.js & python3 guardian_bot.py"
+cmd = "node bridge.js & python guardian_bot.py"
