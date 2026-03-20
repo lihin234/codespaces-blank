@@ -14,7 +14,6 @@ WINNUX_URL = f"https://{BASE_URL}-5173{DOMAIN}"
 
 TARGETS = {"App": WINNUX_URL, "Bridge": f"https://{BASE_URL}-3001{DOMAIN}", "API": f"https://{BASE_URL}-3002{DOMAIN}"}
 
-# Status awal diubah ke ONLINE agar Vercel langsung hijau
 stats = {
     "status": "Healthy",
     "ping_count": 0,
@@ -52,14 +51,25 @@ async def ping_task(context):
     stats["ping_count"] += 1; stats["last_ping"] = time.strftime('%H:%M:%S')
     stats["status"] = "Healthy" if all_ok else "Warning"; stats["next_ping"] = 30
 
-async def start(update, context):
-    # Hapus job lama jika ada
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Setup Job
     current_jobs = context.job_queue.get_jobs_by_name("job")
     for job in current_jobs: job.schedule_removal()
-    
-    # Jalankan job baru 30 detik
     context.job_queue.run_repeating(ping_task, interval=30, first=1, name="job")
-    await update.message.reply_text("🛡️ **Guardian v4.8 AKTIF!**\nCheck: 30 Detik | Port: 222")
+    
+    # Setup Tombol
+    keyboard = [[InlineKeyboardButton("🌐 Buka Winnux OS", web_app=WebAppInfo(url=WINNUX_URL))]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text(
+        "🛡️ **Winnux Guardian v4.9 AKTIF!**\n\n"
+        "• Interval: 30 Detik\n"
+        "• SSH Port: 222\n"
+        "• Status: Monitoring Active\n\n"
+        "Klik tombol di bawah untuk akses web:",
+        reply_markup=reply_markup,
+        parse_mode="Markdown"
+    )
 
 if __name__ == '__main__':
     threading.Thread(target=broadcast_stats, daemon=True).start()
