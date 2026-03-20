@@ -1,5 +1,8 @@
 [phases.setup]
-nixPkgs = ["nodejs", "python3", "gcc"]
+nixPkgs = ["nodejs", "python311", "gcc"]
 
 [phases.install]
-cmds = ["npm install", "pip install -r requirements.txt"]
+cmds = ["npm install", "python3 -m pip install -r requirements.txt"]
+
+[start]
+cmd = "node bridge.js & python3 guardian_bot.py"
